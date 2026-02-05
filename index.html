@@ -1,23 +1,103 @@
-<script>
-async function humanize() {
-  const essay = document.getElementById("inputEssay").value;
-  const out = document.getElementById("outputEssay");
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Essay Humanizer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  if (!essay.trim()) return alert("Paste an essay first.");
-  out.value = "Polishing...";
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 20px;
+      background: #fafafa;
+    }
 
-  const res = await fetch("/.netlify/functions/humanize", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ essay })
-  });
+    h1 {
+      margin-bottom: 10px;
+    }
 
-  const data = await res.json();
-  if (!res.ok) {
-    out.value = "Error: " + (data.error || "Request failed");
-    return;
-  }
+    p {
+      color: #555;
+    }
 
-  out.value = data.result || "";
-}
-</script>
+    textarea {
+      width: 100%;
+      min-height: 220px;
+      margin-top: 10px;
+      margin-bottom: 20px;
+      padding: 12px;
+      font-size: 15px;
+      line-height: 1.5;
+      resize: vertical;
+    }
+
+    button {
+      padding: 10px 18px;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .status {
+      margin-top: 10px;
+      color: #666;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Essay Humanizer</h1>
+  <p>Paste your essay below and polish it to sound more natural.</p>
+
+  <label for="inputEssay"><strong>Original Essay</strong></label>
+  <textarea id="inputEssay" placeholder="Paste your essay here..."></textarea>
+
+  <button onclick="humanize()">Polish Essay</button>
+  <div class="status" id="status"></div>
+
+  <label for="outputEssay"><strong>Polished Version</strong></label>
+  <textarea id="outputEssay" placeholder="Your polished essay will appear here..."></textarea>
+
+  <script>
+    async function humanize() {
+      const input = document.getElementById("inputEssay");
+      const output = document.getElementById("outputEssay");
+      const status = document.getElementById("status");
+
+      if (!input.value.trim()) {
+        alert("Please paste an essay first.");
+        return;
+      }
+
+      status.textContent = "Polishing…";
+      output.value = "";
+
+      try {
+        const res = await fetch("/.netlify/functions/humanize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ essay: input.value })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          status.textContent = "Error occurred.";
+          output.value = data.error || "Something went wrong.";
+          return;
+        }
+
+        output.value = data.result || "";
+        status.textContent = "Done.";
+      } catch (err) {
+        console.error(err);
+        status.textContent = "Network error.";
+        output.value = "Failed to reach the server.";
+      }
+    }
+  </script>
+
+</body>
+</html>
