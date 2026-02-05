@@ -1,12 +1,32 @@
 export async function handler(event) {
   try {
+    // Only allow POST
     if (event.httpMethod !== "POST") {
       return { statusCode: 405, body: "Method Not Allowed" };
     }
 
     const { essay } = JSON.parse(event.body || "{}");
     if (!essay || !essay.trim()) {
-      return { statusCode: 400, body: JSON.stringify({ error: "Missing essay" }) };
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "Missing essay" })
+      };
+    }
+
+    // Safety: keep requests reasonable
+    if (essay.length > 12000) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "Essay too long. Please split it into smaller parts." })
+      };
+    }
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: "Missing GEMINI_API_KEY env var in Netlify" })
+      };
     }
 
     const prompt = `
@@ -26,17 +46,25 @@ Essay:
 ${essay}
 `.trim();
 
-    const resp = await fetch("https://api.openai.com/v1/chat/completions", {
+    // Gemini endpoint (key in query string)
+    const url =
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" +
+      encodeURIComponent(apiKey);
+
+    const resp = await fetch(url, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "gpt-4.1-mini",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.7,
-        max_tokens: 700
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: prompt }]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 700
+        }
       })
     });
 
@@ -45,14 +73,22 @@ ${essay}
     if (!resp.ok) {
       return {
         statusCode: resp.status,
-        body: JSON.stringify({ error: data?.error?.message || "OpenAI request failed" })
+        body: JSON.stringify({ error: data?.error?.message || "Gemini request failed" })
       };
     }
 
-    const result = data.choices?.[0]?.message?.content ?? "";
-    return { statusCode: 200, body: JSON.stringify({ result }) };
+    const result =
+      data?.candidates?.[0]?.content?.parts?.map(p => p.text).join("") || "";
 
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ result })
+    };
   } catch (e) {
-    return { statusCode: 500, body: JSON.stringify({ error: "Server error" }) };
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: "Server error" })
+    };
   }
 }
+
