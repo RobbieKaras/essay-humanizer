@@ -1,0 +1,23 @@
+<script>
+async function humanize() {
+  const essay = document.getElementById("inputEssay").value;
+  const out = document.getElementById("outputEssay");
+
+  if (!essay.trim()) return alert("Paste an essay first.");
+  out.value = "Polishing...";
+
+  const res = await fetch("/.netlify/functions/humanize", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ essay })
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    out.value = "Error: " + (data.error || "Request failed");
+    return;
+  }
+
+  out.value = data.result || "";
+}
+</script>
