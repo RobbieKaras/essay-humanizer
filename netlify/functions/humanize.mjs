@@ -48,8 +48,9 @@ ${essay}
 
     // Gemini endpoint (key in query string)
   const url =
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-001:generateContent?key=" +
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" +
     encodeURIComponent(apiKey);
+
     
 
     const resp = await fetch(url, {
