@@ -22,10 +22,16 @@
       color: #555;
     }
 
+    label {
+      display: block;
+      margin-top: 20px;
+      font-weight: 600;
+    }
+
     textarea {
       width: 100%;
       min-height: 220px;
-      margin-top: 10px;
+      margin-top: 8px;
       margin-bottom: 20px;
       padding: 12px;
       font-size: 15px;
@@ -41,24 +47,30 @@
 
     .status {
       margin-top: 10px;
-      color: #666;
       font-size: 14px;
+      color: #666;
     }
   </style>
 </head>
 <body>
 
   <h1>Essay Humanizer</h1>
-  <p>Paste your essay below and polish it to sound more natural.</p>
+  <p>Paste your essay below and polish it to sound more natural and human.</p>
 
-  <label for="inputEssay"><strong>Original Essay</strong></label>
-  <textarea id="inputEssay" placeholder="Paste your essay here..."></textarea>
+  <label for="inputEssay">Original Essay</label>
+  <textarea
+    id="inputEssay"
+    placeholder="Paste your essay here..."
+  ></textarea>
 
   <button onclick="humanize()">Polish Essay</button>
   <div class="status" id="status"></div>
 
-  <label for="outputEssay"><strong>Polished Version</strong></label>
-  <textarea id="outputEssay" placeholder="Your polished essay will appear here..."></textarea>
+  <label for="outputEssay">Polished Version</label>
+  <textarea
+    id="outputEssay"
+    placeholder="Your polished essay will appear here..."
+  ></textarea>
 
   <script>
     async function humanize() {
